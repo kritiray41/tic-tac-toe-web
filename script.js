@@ -1,142 +1,121 @@
 let board = Array(9).fill("");
-let currentPlayer = "X";
-let gameActive = false;
-let mode = null;
+let current = "X";
+let active = false;
 
-let xScore = 0, oScore = 0, drawScore = 0;
+let mode = "";
+let difficulty = "easy";
 
-const statusText = document.getElementById("status");
+const status = document.getElementById("status");
 const cells = document.querySelectorAll(".cell");
 
-const wins = [
-  [0,1,2],[3,4,5],[6,7,8],
-  [0,3,6],[1,4,7],[2,5,8],
-  [0,4,8],[2,4,6]
-];
+let scores = JSON.parse(localStorage.getItem("scores")) || {X:0, O:0, D:0};
 
-cells.forEach(cell => cell.addEventListener("click", handleClick));
+updateScores();
 
-function setMode(selectedMode) {
-  mode = selectedMode;
-  resetGame();
-  gameActive = true;
-  statusText.textContent = "Player X's turn";
+document.getElementById("mode").onchange = e => {
+  mode = e.target.value;
+  start();
+};
+
+document.getElementById("difficulty").onchange = e => difficulty = e.target.value;
+
+document.querySelector(".reset").onclick = reset;
+
+document.getElementById("themeToggle").onclick = () =>
+  document.body.classList.toggle("light");
+
+cells.forEach(c => c.onclick = () => click(c));
+
+function start(){
+  reset();
+  active = true;
+  status.textContent = "Player X's turn";
 }
 
-function handleClick() {
-  const i = this.dataset.i;
-  if (!gameActive || board[i]) return;
+function click(cell){
+  const i = cell.dataset.i;
+  if(!active || board[i]) return;
 
-  makeMove(i, currentPlayer);
+  move(i, current);
 
-  if (mode === "ai" && gameActive && currentPlayer === "O") {
+  if(mode==="ai" && active && current==="O"){
     setTimeout(aiMove, 400);
   }
 }
 
-function makeMove(i, player) {
-  board[i] = player;
-  cells[i].textContent = player;
-  checkResult();
+function move(i, p){
+  board[i] = p;
+  cells[i].textContent = p;
+  check();
 }
 
-function checkResult() {
-  for (let combo of wins) {
-    const [a,b,c] = combo;
-    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-      combo.forEach(i => cells[i].classList.add("win"));
-      gameActive = false;
-      statusText.textContent = `🏆 Player ${currentPlayer} wins!`;
-      updateScore(currentPlayer);
+function check(){
+  const win = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+
+  for(let w of win){
+    const [a,b,c] = w;
+    if(board[a] && board[a]===board[b] && board[a]===board[c]){
+      w.forEach(i=>cells[i].classList.add("win"));
+      end(board[a]);
       return;
     }
   }
 
-  if (!board.includes("")) {
-    gameActive = false;
-    statusText.textContent = "🤝 Draw!";
-    drawScore++;
-    document.getElementById("drawScore").textContent = drawScore;
-    return;
+  if(!board.includes("")){
+    scores.D++;
+    end("Draw");
   }
 
-  currentPlayer = currentPlayer === "X" ? "O" : "X";
-  statusText.textContent = `Player ${currentPlayer}'s turn`;
+  current = current==="X"?"O":"X";
+  status.textContent = `Player ${current}'s turn`;
 }
 
-function aiMove() {
-  let bestScore = -Infinity;
-  let move;
-
-  for (let i = 0; i < 9; i++) {
-    if (!board[i]) {
-      board[i] = "O";
-      let score = minimax(board, 0, false);
-      board[i] = "";
-      if (score > bestScore) {
-        bestScore = score;
-        move = i;
-      }
-    }
-  }
-  makeMove(move, "O");
-}
-
-function minimax(b, depth, isMax) {
-  let result = evaluate();
-  if (result !== null) return result;
-
-  if (isMax) {
-    let best = -Infinity;
-    for (let i = 0; i < 9; i++) {
-      if (!b[i]) {
-        b[i] = "O";
-        best = Math.max(best, minimax(b, depth+1, false));
-        b[i] = "";
-      }
-    }
-    return best;
+function end(winner){
+  active=false;
+  if(winner==="Draw"){
+    status.textContent="🤝 Draw!";
   } else {
-    let best = Infinity;
-    for (let i = 0; i < 9; i++) {
-      if (!b[i]) {
-        b[i] = "X";
-        best = Math.min(best, minimax(b, depth+1, true));
-        b[i] = "";
-      }
-    }
-    return best;
+    scores[winner]++;
+    status.textContent=`🏆 Player ${winner} wins!`;
+    unlock(winner);
   }
+  save();
 }
 
-function evaluate() {
-  for (let combo of wins) {
-    const [a,b,c] = combo;
-    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-      return board[a] === "O" ? 10 : -10;
-    }
-  }
-  if (!board.includes("")) return 0;
-  return null;
+function aiMove(){
+  let empty = board.map((v,i)=>v===""?i:null).filter(v=>v!==null);
+  let i = empty[Math.floor(Math.random()*empty.length)];
+  move(i,"O");
 }
 
-function updateScore(player) {
-  if (player === "X") {
-    xScore++;
-    document.getElementById("xScore").textContent = xScore;
-  } else {
-    oScore++;
-    document.getElementById("oScore").textContent = oScore;
-  }
-}
-
-function resetGame() {
+function reset(){
   board.fill("");
-  cells.forEach(c => {
-    c.textContent = "";
+  cells.forEach(c=>{
+    c.textContent="";
     c.classList.remove("win");
   });
-  currentPlayer = "X";
-  gameActive = true;
-  statusText.textContent = "Player X's turn";
+  current="X";
+  active=true;
+}
+
+function save(){
+  localStorage.setItem("scores", JSON.stringify(scores));
+  updateScores();
+}
+
+function updateScores(){
+  xScore.textContent=scores.X;
+  oScore.textContent=scores.O;
+  drawScore.textContent=scores.D;
+}
+
+function unlock(p){
+  const a = document.getElementById("achievements");
+  if(scores[p]===3){
+    a.textContent=`🏅 Achievement Unlocked: ${p} Hat-trick!`;
+  }
 }
