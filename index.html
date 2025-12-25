@@ -2,41 +2,55 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Tic Tac Toe</title>
+  <title>Tic Tac Toe Pro</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <h1>🎮 Tic Tac Toe</h1>
+<header>
+  <h1>🎮 Tic Tac Toe Pro</h1>
+  <button id="themeToggle">🌙</button>
+</header>
 
-  <div class="mode">
-    <button onclick="setMode('pvp')">👥 Player vs Player</button>
-    <button onclick="setMode('ai')">🤖 Player vs AI</button>
-  </div>
+<section class="controls">
+  <select id="mode">
+    <option value="">Select Mode</option>
+    <option value="pvp">👥 Player vs Player</option>
+    <option value="ai">🤖 Player vs AI</option>
+  </select>
 
-  <p id="status">Choose a mode to start</p>
+  <select id="difficulty">
+    <option value="easy">Easy AI</option>
+    <option value="medium">Medium AI</option>
+    <option value="hard">Hard AI</option>
+  </select>
+</section>
 
-  <div class="board">
-    <div class="cell" data-i="0"></div>
-    <div class="cell" data-i="1"></div>
-    <div class="cell" data-i="2"></div>
-    <div class="cell" data-i="3"></div>
-    <div class="cell" data-i="4"></div>
-    <div class="cell" data-i="5"></div>
-    <div class="cell" data-i="6"></div>
-    <div class="cell" data-i="7"></div>
-    <div class="cell" data-i="8"></div>
-  </div>
+<p id="status">Choose mode to start</p>
 
-  <div class="score">
-    <span>X: <b id="xScore">0</b></span>
-    <span>O: <b id="oScore">0</b></span>
-    <span>Draws: <b id="drawScore">0</b></span>
-  </div>
+<div class="board">
+  <div class="cell" data-i="0"></div>
+  <div class="cell" data-i="1"></div>
+  <div class="cell" data-i="2"></div>
+  <div class="cell" data-i="3"></div>
+  <div class="cell" data-i="4"></div>
+  <div class="cell" data-i="5"></div>
+  <div class="cell" data-i="6"></div>
+  <div class="cell" data-i="7"></div>
+  <div class="cell" data-i="8"></div>
+</div>
 
-  <button class="reset" onclick="resetGame()">🔄 Restart</button>
+<div class="score">
+  <span>X: <b id="xScore">0</b></span>
+  <span>O: <b id="oScore">0</b></span>
+  <span>Draws: <b id="drawScore">0</b></span>
+</div>
 
-  <script src="script.js"></script>
+<div class="achievements" id="achievements"></div>
+
+<button class="reset">🔄 Restart</button>
+
+<script src="script.js"></script>
 </body>
 </html>
